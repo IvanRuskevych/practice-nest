@@ -1,4 +1,4 @@
-import { IsPasswordRepeatMatching } from 'libs/common/decorators';
+import { IsPasswordRepeatMatching } from '../../shared/decorators';
 import { IsEmail, IsNotEmpty, IsString, MinLength, Validate } from 'class-validator';
 
 export class RegisterDto {

@@ -3,7 +3,7 @@ import {
     ValidatorConstraint,
     type ValidatorConstraintInterface,
 } from 'class-validator';
-import type { RegisterDto } from '../../../src/auth/dto/register.dto';
+import type { RegisterDto } from '../../auth/dto/register.dto';
 
 @ValidatorConstraint({ name: 'IsPasswordRepeatMatching', async: false })
 export class IsPasswordRepeatMatching implements ValidatorConstraintInterface {
