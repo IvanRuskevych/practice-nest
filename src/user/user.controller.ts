@@ -27,7 +27,7 @@ export class UserController {
     }
 
     @Get(':idOrEmail')
-    findOne(@Param('idOrEmail', ParseUUIDPipe) idOrEmail: string) {
+    findOne(@Param('idOrEmail') idOrEmail: string) {
         return this.userService.findOne(idOrEmail);
     }
 
