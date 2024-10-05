@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import type { User } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcryptjs';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto } from './dto';
 
 @Injectable()
 export class UserService {
@@ -12,7 +12,7 @@ export class UserService {
         return hashSync(password, genSaltSync(10));
     }
 
-    create(user: CreateUserDto) {
+    create(user: Partial<User>) {
         const hashedPassword = this.hashPassword(user.password);
 
         return this.prismaService.user.create({

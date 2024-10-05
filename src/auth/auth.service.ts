@@ -1,26 +1,66 @@
-import { Injectable } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import type { User } from '@prisma/client';
+import { compareSync } from 'bcryptjs';
+import { add } from 'date-fns';
+import { v4 } from 'uuid';
+import { PrismaService } from '../prisma/prisma.service';
+import type { ITokens } from '../shared/types';
+import { UserService } from '../user';
+import { LoginDto, RegisterDto } from './dto';
 
 @Injectable()
 export class AuthService {
-    create(createAuthDto: RegisterDto) {
-        return 'This action adds a new auth';
+    private readonly logger = new Logger(AuthService.name);
+    constructor(
+        private readonly userService: UserService,
+        private readonly jwtService: JwtService,
+        private readonly prismaService: PrismaService,
+    ) {}
+
+    private async generateTokens(user: User): Promise<ITokens> {
+        const accessToken =
+            // 'Bearer ' +
+            this.jwtService.sign({
+                id: user.id,
+                email: user.email,
+                roles: user.roles,
+            });
+
+        const refreshToken = await this.prismaService.token.create({
+            data: {
+                token: v4(),
+                exp: add(new Date(), { months: 1 }),
+                userId: user.id,
+            },
+        });
+
+        return { accessToken, refreshToken };
     }
 
-    findAll() {
-        return `This action returns all auth`;
+    async register(dto: RegisterDto) {
+        const user: User = await this.userService.findOne(dto.email).catch((err) => {
+            this.logger.error(err);
+            return null;
+        });
+
+        if (user) {
+            throw new ConflictException('User already exists');
+        }
+
+        return this.userService.create(dto).catch((err) => {
+            this.logger.error(err);
+            return null;
+        });
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} auth`;
-    }
+    async login(dto: LoginDto): Promise<ITokens> {
+        const user = await this.userService.findOne(dto.email);
 
-    update(id: number, updateAuthDto: UpdateAuthDto) {
-        return `This action updates a #${id} auth`;
-    }
+        if (!user || !compareSync(dto.password, user.password)) {
+            throw new UnauthorizedException('Login or password wrong');
+        }
 
-    remove(id: number) {
-        return `This action removes a #${id} auth`;
+        return await this.generateTokens(user);
     }
 }
