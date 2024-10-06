@@ -70,14 +70,21 @@ export class AuthService {
     }
 
     async refreshTokens(refreshToken: string): Promise<ITokens> {
-        const token = await this.prismaService.token.delete({ where: { token: refreshToken } });
-        // TODO: якщо такого токену не існує в базі, то prisma поверне P2025 - як її обробляти???
-        // TODO: як варіант спочатку перевірити чи існує токен - findFirst()
-        // const token = await this.prismaService.token.findFirst({ where: { token: refreshToken } });
+        const token = await this.prismaService.token.findUnique({ where: { token: refreshToken } });
 
-        if (!token) {
-            throw new UnauthorizedException('Refresh token failed !!');
+        if (!token || new Date(token.exp) < new Date()) {
+            await this.prismaService.token.delete({
+                where: { token: refreshToken },
+            });
+            throw new UnauthorizedException(
+                !token ? 'Refresh token failed 3.' : 'Refresh token expired.',
+            );
         }
+
+        await this.prismaService.token.delete({
+            where: { token: refreshToken },
+        });
+
         const user = await this.userService.findOne(token.userId);
 
         return this.generateTokens(user);
