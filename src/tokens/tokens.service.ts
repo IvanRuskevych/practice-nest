@@ -1,13 +1,14 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { type RefreshToken, User } from '@prisma/client';
 import { add } from 'date-fns';
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
+import { TOKENS_KEY } from '../shared/constants';
 import { ITokens } from '../shared/types';
 
-const REFRESH_TOKEN = 'refresh_token';
+const { REFRESH_TOKEN } = TOKENS_KEY;
 
 @Injectable()
 export class TokensService {

@@ -10,12 +10,13 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { TOKENS_KEY } from '../shared/constants';
 import { CookiesDecorator, UserAgentDecorator } from '../shared/decorators';
 import { TokensService } from '../tokens';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 
-const REFRESH_TOKEN = 'refresh_token';
+const { REFRESH_TOKEN } = TOKENS_KEY;
 
 @Controller('auth')
 export class AuthController {
