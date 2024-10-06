@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
 import { compareSync } from 'bcryptjs';
 import { add } from 'date-fns';
-import { v4 } from 'uuid';
 import { PrismaService } from '../prisma/prisma.service';
 import type { ITokens } from '../shared/types';
 import { UserService } from '../user';
@@ -27,9 +26,15 @@ export class AuthService {
                 roles: user.roles,
             });
 
+        const generatedRefreshToken =
+            // 'Bearer ' +
+            this.jwtService.sign({
+                id: user.id,
+            });
+
         const refreshToken = await this.prismaService.token.create({
             data: {
-                token: v4(),
+                token: generatedRefreshToken,
                 exp: add(new Date(), { months: 1 }),
                 userId: user.id,
             },
@@ -62,5 +67,19 @@ export class AuthService {
         }
 
         return await this.generateTokens(user);
+    }
+
+    async refreshTokens(refreshToken: string): Promise<ITokens> {
+        const token = await this.prismaService.token.delete({ where: { token: refreshToken } });
+        // TODO: якщо такого токену не існує в базі, то prisma поверне P2025 - як її обробляти???
+        // TODO: як варіант спочатку перевірити чи існує токен - findFirst()
+        // const token = await this.prismaService.token.findFirst({ where: { token: refreshToken } });
+
+        if (!token) {
+            throw new UnauthorizedException('Refresh token failed !!');
+        }
+        const user = await this.userService.findOne(token.userId);
+
+        return this.generateTokens(user);
     }
 }
