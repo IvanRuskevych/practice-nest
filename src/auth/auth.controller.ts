@@ -9,10 +9,9 @@ import {
     Res,
     UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
-import { CookiesDecorator } from '../shared/decorators';
-import { ITokens } from '../shared/types';
+import { CookiesDecorator, UserAgentDecorator } from '../shared/decorators';
+import { TokensService } from '../tokens';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 
@@ -22,59 +21,56 @@ const REFRESH_TOKEN = 'refresh_token';
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
-        private readonly configService: ConfigService,
+        private readonly tokensService: TokensService,
     ) {}
 
-    private setRefreshTokenToCookies(tokens: ITokens, res: Response) {
-        if (!tokens) {
-            throw new UnauthorizedException();
-        }
-        res.cookie(REFRESH_TOKEN, tokens.refreshToken.token, {
-            httpOnly: true,
-            sameSite: 'lax',
-            expires: new Date(tokens.refreshToken.exp),
-            secure: this.configService.get('NODE_ENV', 'development') === 'production',
-            path: '/',
-        });
-
-        res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken });
-    }
-
     @Post('register')
-    async register(@Body() dto: RegisterDto) {
+    async register(@Body() dto: RegisterDto, @Res() res: Response) {
         const newUser = await this.authService.register(dto);
 
         if (!newUser) {
             throw new InternalServerErrorException('Registration failed. Please try again later.');
         }
+
+        //TODO: return { message: 'Registration successful', user: newUser }; - такий варіант також можливий, але якщо не використовується @Res() res: Response
+        res.status(HttpStatus.OK).send({ message: 'Registration successful' });
     }
 
     @Post('login')
-    async login(@Body() dto: LoginDto, @Res() res: Response) {
-        const tokens = await this.authService.login(dto);
+    async login(
+        @Body() dto: LoginDto,
+        @Res() res: Response,
+        @UserAgentDecorator() userAgent: string,
+    ) {
+        const tokens = await this.authService.login(dto, userAgent);
 
         if (!tokens) {
             throw new BadRequestException('Login failed. Please try again later.');
         }
 
         // return { accessToken: tokens.accessToken };
-        this.setRefreshTokenToCookies(tokens, res);
+        this.tokensService.setRefreshTokenToCookies(tokens, res);
+
+        res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken });
     }
 
     @Get('refresh-tokens')
     async refreshToken(
         @CookiesDecorator(REFRESH_TOKEN) refreshToken: string,
         @Res() res: Response,
+        @UserAgentDecorator() userAgent: string,
     ) {
         if (!refreshToken) {
             throw new UnauthorizedException('Refresh token failed 1. Please try again later.');
         }
-        const tokens = await this.authService.refreshTokens(refreshToken);
+
+        const tokens = await this.authService.refreshTokens(refreshToken, userAgent);
 
         if (!tokens) {
             throw new UnauthorizedException('Refresh token failed 2. Please try again later.');
         }
 
-        this.setRefreshTokenToCookies(tokens, res);
+        this.tokensService.setRefreshTokenToCookies(tokens, res);
+        res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken });
     }
 }

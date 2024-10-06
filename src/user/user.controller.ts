@@ -19,17 +19,17 @@ export class UserController {
     // По суті це реєстрація
     @Post()
     createUser(@Body() userDto: CreateUserDto) {
-        return this.userService.create(userDto);
+        return this.userService.createUser(userDto);
     }
 
     @Get()
     findAllUser() {
-        return this.userService.findAll();
+        return this.userService.findAllUsers();
     }
 
     @Get(':idOrEmail')
     findOne(@Param('idOrEmail') idOrEmail: string) {
-        return this.userService.findOne(idOrEmail);
+        return this.userService.findUser(idOrEmail);
     }
 
     // @Patch(':id')
@@ -39,6 +39,6 @@ export class UserController {
 
     @Delete(':id')
     remove(@Param('id', ParseUUIDPipe) id: string) {
-        return this.userService.remove(id);
+        return this.userService.removeUser(id);
     }
 }

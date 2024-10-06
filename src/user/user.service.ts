@@ -12,7 +12,7 @@ export class UserService {
         return hashSync(password, genSaltSync(10));
     }
 
-    create(user: Partial<User>) {
+    createUser(user: Partial<User>) {
         const hashedPassword = this.hashPassword(user.password);
 
         return this.prismaService.user.create({
@@ -24,11 +24,11 @@ export class UserService {
         });
     }
 
-    findAll() {
+    findAllUsers() {
         return this.prismaService.user.findMany();
     }
 
-    findOne(idOrEmail: string) {
+    findUser(idOrEmail: string) {
         return this.prismaService.user.findFirst({
             where: { OR: [{ id: idOrEmail }, { email: idOrEmail }] },
         });
@@ -38,7 +38,7 @@ export class UserService {
     //         return `This action updates a #${id} user`;
     //     }
 
-    remove(id: string) {
+    removeUser(id: string) {
         return this.prismaService.user.delete({ where: { id } });
     }
 }
