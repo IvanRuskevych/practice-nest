@@ -16,12 +16,6 @@ import { UserService } from './user.service';
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
-    // По суті це реєстрація
-    @Post()
-    createUser(@Body() userDto: CreateUserDto) {
-        return this.userService.createUser(userDto);
-    }
-
     @Get()
     findAllUser() {
         return this.userService.findAllUsers();
