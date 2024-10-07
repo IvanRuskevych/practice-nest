@@ -7,6 +7,8 @@ import { UserModule } from '../user';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { options } from './config';
+import { GUARDS } from './guards';
+import { STRATEGIES } from './strategy';
 
 @Module({
     imports: [
@@ -17,6 +19,6 @@ import { options } from './config';
         TokensModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService],
+    providers: [AuthService, ...STRATEGIES, ...GUARDS],
 })
 export class AuthModule {}

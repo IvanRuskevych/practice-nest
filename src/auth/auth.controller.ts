@@ -11,13 +11,14 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { TOKENS_KEY } from '../shared/constants';
-import { CookiesDecorator, UserAgentDecorator } from '../shared/decorators';
+import { CookiesDecorator, PublicDecorator, UserAgentDecorator } from '../shared/decorators';
 import { TokensService } from '../tokens';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 
 const { REFRESH_TOKEN } = TOKENS_KEY;
 
+@PublicDecorator()
 @Controller('auth')
 export class AuthController {
     constructor(
