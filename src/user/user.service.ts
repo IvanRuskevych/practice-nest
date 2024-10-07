@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcryptjs';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -28,7 +28,7 @@ export class UserService {
         return this.prismaService.user.findMany();
     }
 
-    findUser(idOrEmail: string) {
+    findUser(idOrEmail: string): Promise<User> {
         return this.prismaService.user.findFirst({
             where: { OR: [{ id: idOrEmail }, { email: idOrEmail }] },
         });
@@ -39,6 +39,6 @@ export class UserService {
     //     }
 
     removeUser(id: string) {
-        return this.prismaService.user.delete({ where: { id } });
+        return this.prismaService.user.delete({ where: { id }, select: { id: true } });
     }
 }

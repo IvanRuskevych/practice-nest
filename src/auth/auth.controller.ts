@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     Body,
+    ClassSerializerInterceptor,
     Controller,
     Get,
     HttpStatus,
@@ -8,11 +9,14 @@ import {
     Post,
     Res,
     UnauthorizedException,
+    UseInterceptors,
 } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { Response } from 'express';
 import { TOKENS_KEY } from '../shared/constants';
 import { CookiesDecorator, PublicDecorator, UserAgentDecorator } from '../shared/decorators';
 import { TokensService } from '../tokens';
+import { UserResponse } from '../user/responses';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 
@@ -26,6 +30,8 @@ export class AuthController {
         private readonly tokensService: TokensService,
     ) {}
 
+    /* TODO: @UseInterceptors(ClassSerializerInterceptor) потрібен для використання new UserResponse() */
+    @UseInterceptors(ClassSerializerInterceptor)
     @Post('register')
     async register(@Body() dto: RegisterDto, @Res() res: Response) {
         const newUser = await this.authService.register(dto);
@@ -34,10 +40,16 @@ export class AuthController {
             throw new InternalServerErrorException('Registration failed. Please try again later.');
         }
 
-        //TODO: return { message: 'Registration successful', user: newUser }; - такий варіант також можливий, але якщо не використовується @Res() res: Response
-        res.status(HttpStatus.OK).send({ message: 'Registration successful' });
+        //TODO: якщо використовуємо ручну відправку res.status(), то
+        // Серіалізуємо вручну об'єкт, застосовуючи `UserResponse`:
+        const userResponse = plainToInstance(UserResponse, newUser);
+        res.status(HttpStatus.OK).send({
+            message: 'Registration successful',
+            user: userResponse,
+        });
     }
 
+    //TODO: return { message: 'Registration successful', user: newUser }; - такий варіант також можливий, але якщо не використовується @Res() res: Response
     @Post('login')
     async login(
         @Body() dto: LoginDto,

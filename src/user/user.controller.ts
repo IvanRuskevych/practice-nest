@@ -1,4 +1,13 @@
-import { Controller, Delete, Get, Param, ParseUUIDPipe } from '@nestjs/common';
+import {
+    ClassSerializerInterceptor,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    UseInterceptors,
+} from '@nestjs/common';
+import { UserResponse } from './responses';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -10,9 +19,14 @@ export class UserController {
         return this.userService.findAllUsers();
     }
 
+    @UseInterceptors(ClassSerializerInterceptor)
     @Get(':idOrEmail')
-    findOne(@Param('idOrEmail') idOrEmail: string) {
-        return this.userService.findUser(idOrEmail);
+    async findOne(@Param('idOrEmail') idOrEmail: string) {
+        const user = await this.userService.findUser(idOrEmail);
+
+        // TODO: автоматичне повернення в Nest через return
+        // TODO: Ручне - res.status()json({})
+        return new UserResponse(user);
     }
 
     // @Patch(':id')
