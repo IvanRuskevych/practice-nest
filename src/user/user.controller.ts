@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    NotFoundException,
     Param,
     ParseUUIDPipe,
     UseInterceptors,
@@ -35,7 +36,11 @@ export class UserController {
     // }
 
     @Delete(':id')
-    remove(@Param('id', ParseUUIDPipe) id: string) {
+    async remove(@Param('id', ParseUUIDPipe) id: string) {
+        const user = await this.userService.findUser(id);
+        if (!user) {
+            throw new NotFoundException(`User with id ${id} not found`);
+        }
         return this.userService.removeUser(id);
     }
 }
