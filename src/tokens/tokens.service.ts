@@ -62,8 +62,7 @@ export class TokensService {
         return { accessToken, refreshToken };
     }
 
-    async validateRefreshToken(refreshToken: string, userAgent: string): Promise<RefreshToken> {
-        console.log(userAgent);
+    async validateRefreshToken(refreshToken: string): Promise<RefreshToken> {
         const existingRefreshToken = await this.prismaService.refreshToken.findUnique({
             where: { token: refreshToken },
         });

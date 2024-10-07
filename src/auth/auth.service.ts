@@ -41,7 +41,7 @@ export class AuthService {
     }
 
     async refreshTokens(refreshToken: string, userAgent: string): Promise<ITokens> {
-        const token = await this.tokensService.validateRefreshToken(refreshToken, userAgent);
+        const token = await this.tokensService.validateRefreshToken(refreshToken);
 
         const user = await this.userService.findUser(token.userId);
 
