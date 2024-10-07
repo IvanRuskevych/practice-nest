@@ -16,6 +16,7 @@ import { Response } from 'express';
 import { TOKENS_KEY } from '../shared/constants';
 import { CookiesDecorator, PublicDecorator, UserAgentDecorator } from '../shared/decorators';
 import { TokensService } from '../tokens';
+import { UserService } from '../user';
 import { UserResponse } from '../user/responses';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
@@ -28,6 +29,7 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly tokensService: TokensService,
+        private readonly userService: UserService,
     ) {}
 
     /* TODO: @UseInterceptors(ClassSerializerInterceptor) потрібен для використання new UserResponse() */
@@ -64,8 +66,8 @@ export class AuthController {
 
         // return { accessToken: tokens.accessToken };
         this.tokensService.setRefreshTokenToCookies(tokens, res);
-
-        res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken });
+        const userExists = await this.userService.findUser(dto.email);
+        res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken, user: userExists });
     }
 
     @Get('refresh-tokens')

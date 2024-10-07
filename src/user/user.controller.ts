@@ -8,6 +8,8 @@ import {
     ParseUUIDPipe,
     UseInterceptors,
 } from '@nestjs/common';
+import { CurrentUser } from '../shared/decorators';
+import type { IJwtPayload } from '../shared/types';
 import { UserResponse } from './responses';
 import { UserService } from './user.service';
 
@@ -36,11 +38,11 @@ export class UserController {
     // }
 
     @Delete(':id')
-    async remove(@Param('id', ParseUUIDPipe) id: string) {
-        const user = await this.userService.findUser(id);
-        if (!user) {
-            throw new NotFoundException(`User with id ${id} not found`);
-        }
-        return this.userService.removeUser(id);
+    async remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() currentUser: IJwtPayload) {
+        // const userExists = await this.userService.findUser(id);
+        // if (!userExists) {
+        //     throw new NotFoundException(`User with id ${id} not found`);
+        // }
+        return this.userService.removeUser(id, currentUser);
     }
 }
