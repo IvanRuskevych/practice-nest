@@ -97,4 +97,8 @@ export class TokensService {
             path: '/',
         });
     }
+
+    async deleteRefreshToken(token: string) {
+        return this.prismaService.refreshToken.delete({ where: { token } });
+    }
 }

@@ -3,7 +3,6 @@ import {
     Controller,
     Delete,
     Get,
-    NotFoundException,
     Param,
     ParseUUIDPipe,
     UseInterceptors,

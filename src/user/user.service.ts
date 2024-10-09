@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Role, User } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcryptjs';
 
@@ -20,7 +20,7 @@ export class UserService {
             data: {
                 email: user.email,
                 password: hashedPassword,
-                roles: ['ADMIN'],
+                roles: ['USER'],
             },
         });
     }

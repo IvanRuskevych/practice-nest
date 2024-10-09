@@ -72,8 +72,8 @@ export class AuthController {
 
     @Get('refresh-tokens')
     async refreshToken(
-        @CookiesDecorator(REFRESH_TOKEN) refreshToken: string,
         @Res() res: Response,
+        @CookiesDecorator(REFRESH_TOKEN) refreshToken: string,
         @UserAgentDecorator() userAgent: string,
     ) {
         if (!refreshToken) {
@@ -88,5 +88,13 @@ export class AuthController {
 
         this.tokensService.setRefreshTokenToCookies(tokens, res);
         res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken });
+    }
+
+    @Get('logout')
+    async logout(@Res() res: Response, @CookiesDecorator(REFRESH_TOKEN) refreshToken: string) {
+        console.log({ refreshToken });
+        await this.tokensService.deleteRefreshToken(refreshToken);
+        res.cookie(REFRESH_TOKEN, '', { httpOnly: true, secure: true, expires: new Date() });
+        res.sendStatus(HttpStatus.OK);
     }
 }
